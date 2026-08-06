@@ -6,6 +6,7 @@ import { FadeIn } from "@/components/animations/fade-in";
 import { ContactForm } from "@/components/forms/contact-form";
 import { BrandLogo } from "@/components/ui/brand-logo";
 import { Container } from "@/components/ui/container";
+import { InstagramIcon } from "@/components/ui/instagram-icon";
 import type { ContactConfig, ContactPageContent } from "@/types";
 
 type ContactSectionProps = {
@@ -61,6 +62,20 @@ export function ContactSection({
                       {contact.phone}
                     </a>
                   </li>
+                  <li>
+                    <a
+                      href={contact.instagramHref}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-3 transition hover:text-[var(--champagne)]"
+                    >
+                      <InstagramIcon
+                        className="h-4 w-4 text-[var(--champagne)]"
+                        strokeWidth={1.6}
+                      />
+                      {contact.instagram}
+                    </a>
+                  </li>
                 </ul>
               </>
             ) : (
@@ -88,6 +103,17 @@ export function ContactSection({
                     >
                       <Phone className="h-4 w-4 text-[var(--brand)]" />
                       {contact.phone}
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href={contact.instagramHref}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-3 transition hover:text-[var(--brand-dark)]"
+                    >
+                      <InstagramIcon className="h-4 w-4 text-[var(--brand)]" />
+                      {contact.instagram}
                     </a>
                   </li>
                 </ul>

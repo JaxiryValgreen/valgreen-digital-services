@@ -4,10 +4,18 @@ import { type FormEvent, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { ArrowRight, CheckCircle2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { FieldError, Input, Select, Textarea } from "@/components/ui/field";
+import {
+  FieldError,
+  Input,
+  Label,
+  Select,
+  Textarea,
+} from "@/components/ui/field";
 import { contactFormSchema } from "@/lib/validations/contact";
 import { site } from "@/data/site";
 import { cn } from "@/lib/cn";
+
+const FORMSPREE_ENDPOINT = "https://formspree.io/f/xpqvgban";
 
 type ContactFormProps = {
   className?: string;
@@ -31,6 +39,7 @@ function resolveInterest(raw: string | null) {
 export function ContactForm({ className, layout = "stack" }: ContactFormProps) {
   const searchParams = useSearchParams();
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
   const [interestOverride, setInterestOverride] = useState<string | null>(null);
 
@@ -42,9 +51,10 @@ export function ContactForm({ className, layout = "stack" }: ContactFormProps) {
 
   const interest = interestOverride ?? interestFromQuery;
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const formData = new FormData(event.currentTarget);
+    const form = event.currentTarget;
+    const formData = new FormData(form);
     const payload = {
       name: String(formData.get("name") ?? ""),
       email: String(formData.get("email") ?? ""),
@@ -75,21 +85,39 @@ export function ContactForm({ className, layout = "stack" }: ContactFormProps) {
     }
 
     setErrors({});
-
-    const subject = encodeURIComponent(
-      `New ${result.data.interest} inquiry from ${result.data.name}`,
-    );
-    const body = encodeURIComponent(
-      `Name: ${result.data.name}\nEmail: ${result.data.email}\nPhone: ${result.data.phone}\nInterest: ${result.data.interest}\n\nMessage:\n${result.data.message}`,
-    );
+    setSubmitting(true);
 
     try {
-      window.location.href = `mailto:${site.contact.email}?subject=${subject}&body=${body}`;
+      const response = await fetch(FORMSPREE_ENDPOINT, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: result.data.name,
+          email: result.data.email,
+          phone: result.data.phone,
+          interest: result.data.interest,
+          message: result.data.message,
+          _subject: `New ${result.data.interest} inquiry from ${result.data.name}`,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Formspree request failed");
+      }
+
+      form.reset();
+      setInterestOverride("");
       setSubmitted(true);
     } catch {
+      setSubmitted(false);
       setErrors({
-        form: "We could not open your email app. Please email or call us directly.",
+        form: "Something went wrong. Please try again.",
       });
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -104,19 +132,9 @@ export function ContactForm({ className, layout = "stack" }: ContactFormProps) {
       >
         <div className="flex flex-col items-start gap-3 text-[var(--foreground)]">
           <CheckCircle2 className="h-6 w-6 text-[var(--brand-dark)]" />
-          <p className="font-[family-name:var(--font-display)] text-2xl">
-            Message ready to send
-          </p>
-          <p className="text-sm text-[var(--muted)]">
-            Your email app should open with your message to {site.contact.email}.
-            If it did not, email us directly or call{" "}
-            <a
-              href={site.contact.phoneHref}
-              className="text-[var(--brand-dark)] underline"
-            >
-              {site.contact.phone}
-            </a>
-            .
+          <p className="text-sm leading-relaxed text-[var(--muted)] sm:text-base">
+            Thank you! Your message has been sent successfully. We&apos;ll
+            contact you soon.
           </p>
         </div>
       </div>
@@ -142,25 +160,27 @@ export function ContactForm({ className, layout = "stack" }: ContactFormProps) {
       {layout === "split" ? (
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
+            <Label htmlFor="name">Full Name</Label>
             <Input
               id="name"
               name="name"
               required
               autoComplete="name"
-              placeholder="Your Name"
-              aria-label="Your Name"
+              placeholder="Full Name"
+              disabled={submitting}
             />
             <FieldError message={errors.name} />
           </div>
           <div>
+            <Label htmlFor="email">Email Address</Label>
             <Input
               id="email"
               name="email"
               type="email"
               required
               autoComplete="email"
-              placeholder="Your Email"
-              aria-label="Your Email"
+              placeholder="Email Address"
+              disabled={submitting}
             />
             <FieldError message={errors.email} />
           </div>
@@ -168,25 +188,27 @@ export function ContactForm({ className, layout = "stack" }: ContactFormProps) {
       ) : (
         <>
           <div>
+            <Label htmlFor="name">Full Name</Label>
             <Input
               id="name"
               name="name"
               required
               autoComplete="name"
-              placeholder="Your Name"
-              aria-label="Your Name"
+              placeholder="Full Name"
+              disabled={submitting}
             />
             <FieldError message={errors.name} />
           </div>
           <div>
+            <Label htmlFor="email">Email Address</Label>
             <Input
               id="email"
               name="email"
               type="email"
               required
               autoComplete="email"
-              placeholder="Your Email"
-              aria-label="Your Email"
+              placeholder="Email Address"
+              disabled={submitting}
             />
             <FieldError message={errors.email} />
           </div>
@@ -194,29 +216,31 @@ export function ContactForm({ className, layout = "stack" }: ContactFormProps) {
       )}
 
       <div>
+        <Label htmlFor="phone">Phone Number</Label>
         <Input
           id="phone"
           name="phone"
           type="tel"
           required
           autoComplete="tel"
-          placeholder="Your Phone"
-          aria-label="Your Phone"
+          placeholder="Phone Number"
+          disabled={submitting}
         />
         <FieldError message={errors.phone} />
       </div>
 
       <div>
+        <Label htmlFor="interest">Service Interested In</Label>
         <Select
           id="interest"
           name="interest"
           required
-          aria-label="What are you interested in?"
           value={interest}
           onChange={(event) => setInterestOverride(event.target.value)}
+          disabled={submitting}
         >
           <option value="" disabled>
-            What are you interested in?
+            Service Interested In
           </option>
           {site.contactInterests.map((option) => (
             <option key={option.value} value={option.value}>
@@ -228,17 +252,23 @@ export function ContactForm({ className, layout = "stack" }: ContactFormProps) {
       </div>
 
       <div>
+        <Label htmlFor="message">Tell us about your project</Label>
         <Textarea
           id="message"
           name="message"
           required
-          placeholder="How can we help your business?"
-          aria-label="How can we help your business?"
+          placeholder="Tell us about your project"
           className="min-h-32"
+          disabled={submitting}
         />
         <FieldError message={errors.message} />
       </div>
-      <Button type="submit" size="lg" className="w-full">
+      <Button
+        type="submit"
+        size="lg"
+        className="w-full"
+        disabled={submitting}
+      >
         Send Message
         <ArrowRight className="h-4 w-4" />
       </Button>

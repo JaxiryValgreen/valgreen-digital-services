@@ -4,8 +4,8 @@ import { site } from "@/data/site";
 const interestValues = site.contactInterests.map((option) => option.value);
 
 export const contactFormSchema = z.object({
-  name: z.string().trim().min(2, "Please enter your name"),
-  email: z.string().trim().email("Please enter a valid email"),
+  name: z.string().trim().min(2, "Please enter your full name"),
+  email: z.string().trim().email("Please enter a valid email address"),
   phone: z
     .string()
     .trim()
@@ -14,9 +14,9 @@ export const contactFormSchema = z.object({
   interest: z
     .string()
     .trim()
-    .min(1, "Please select what you are interested in")
+    .min(1, "Please select a service")
     .refine((value) => interestValues.includes(value), {
-      message: "Please select what you are interested in",
+      message: "Please select a service",
     }),
   message: z
     .string()

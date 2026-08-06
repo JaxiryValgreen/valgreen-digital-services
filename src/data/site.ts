@@ -27,8 +27,10 @@ export const site: SiteConfig = {
 
   contact: {
     email: "valgreendigitalservices@gmail.com",
-    phone: "(865) 207-1226",
+    phone: "+1 (865) 207-1226",
     phoneHref: "tel:+18652071226",
+    instagram: "@valgreendigital",
+    instagramHref: "https://instagram.com/valgreendigital",
   },
 
   navigation: {

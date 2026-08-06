@@ -166,6 +166,8 @@ export type ContactConfig = {
   email: string;
   phone: string;
   phoneHref: string;
+  instagram: string;
+  instagramHref: string;
 };
 
 export type SeoConfig = {
