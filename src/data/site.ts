@@ -8,7 +8,7 @@ export const site: SiteConfig = {
     description:
       "We design modern, fast and SEO-optimized websites that build trust, attract customers and drive real results.",
     logoText: "VALGREEN DIGITAL SERVICES",
-    url: "https://valgreendigital.com",
+    url: "https://www.valgreendigitalservices.com",
     logoSrc: "/images/valgreen-logo-official.png",
     logoDarkSrc: "/images/valgreen-logo-official.png",
   },
