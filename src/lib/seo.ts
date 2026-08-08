@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { site } from "@/data/site";
 
 const siteUrl = site.brand.url.replace(/\/$/, "");
+const titleSuffix = site.brand.name;
 
 export function absoluteUrl(path = "/"): string {
   if (path.startsWith("http")) return path;
@@ -23,14 +24,15 @@ export function createPageMetadata({
   image = site.seo.ogImage ?? site.brand.logoSrc,
   noIndex = false,
 }: PageMetaInput = {}): Metadata {
-  const fullTitle = title
-    ? `${title} | ${site.brand.shortName}`
-    : site.seo.title;
+  const fullTitle = title ? `${title} | ${titleSuffix}` : site.seo.title;
   const url = absoluteUrl(path);
 
   return {
     metadataBase: new URL(siteUrl),
-    title: fullTitle,
+    // Use absolute titles so the root title.template cannot double-suffix.
+    title: {
+      absolute: fullTitle,
+    },
     description,
     keywords: site.seo.keywords,
     authors: [{ name: site.brand.name }],
@@ -82,7 +84,7 @@ export function createRootMetadata(): Metadata {
     ...createPageMetadata(),
     title: {
       default: site.seo.title,
-      template: `%s | ${site.brand.shortName}`,
+      template: `%s | ${titleSuffix}`,
     },
   };
 }
